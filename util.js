@@ -45,9 +45,8 @@ const httpRequestProxy = (proxyUrl, acceptUrl) => (
     })
 )
 
-const getProxyList = async () => {
+const getProxyList2 = async () => {
     let ipList = [];
-
 
     for (let page = 1; page <= 4; page++) {
         let buf = await httpRequest(`http://www.xicidaili.com/nn/${page}`);
@@ -69,16 +68,42 @@ const getProxyList = async () => {
             }
         })
     }
+    return ipList;
+}
 
+const sleep = (time) => (new Promise((resolve, reject) => {
+    setTimeout(resolve, time);
+}))
 
+const getProxyList = async () => {
+    let ipList = [];
+
+    for (let page = 1; page <= 5; page++) {
+        await sleep(5000);
+        let buf = await httpRequest(`https://www.kuaidaili.com/free/inha/${page}/`);
+        let bodyStr = iconv.decode(buf, 'utf-8');
+        let $ = cheerio.load(bodyStr);
+
+        let rows = $('#list table tbody tr');
+
+        rows.each((index, row) => {
+            let qRow = $(row);
+            let ip = qRow.find('td').eq(0).text();
+            let port = qRow.find('td').eq(1).text();
+            let http = qRow.find('td').eq(3).text().toLowerCase().includes('http');
+            if (http) {
+                ipList.push([ip, port]);
+            }
+        })
+    }
 
     return ipList;
 }
 
-
-
 module.exports = {
     httpRequest,
     httpRequestProxy,
-    getProxyList
+    getProxyList,
+    getProxyList2
+
 }
